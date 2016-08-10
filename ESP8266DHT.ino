@@ -27,7 +27,7 @@ void timerCallback(void *pArg) {
 DHT dht(PIN, DHTTYPE);
 WiFiClient wclient;
 // Update these with values suitable for your network.
-IPAddress MQTTserver(192, 168, 11, 22);
+IPAddress MQTTserver(192, 168, 11, 21);
 //PubSubClient client(wclient);
 PubSubClient client(MQTTserver, 1883, wclient);
 
@@ -48,60 +48,6 @@ void callback (char* topic, byte* payload, uint8_t length) {
   float t = dht.readTemperature();
   Serial.print("Temperature: ");
   Serial.println(t);
-
-
-  // if (! strcmp(topic, "NeoPixel")) {
-  //   if (! strncmp((char*) payload, "on", length)) {
-  //     // reset brightness and saturation, keep hue
-  //     brightness = 255;
-  //     saturation = 255;
-  //
-  //     color = getRGB(hue, saturation, brightness);
-  //     for(i=0; i<strip.numPixels(); i++) {
-  //       strip.setPixelColor(i, color);
-  //     }
-  //     strip.show();
-  //   }
-  //   else {
-  //     // turn off, set brightness to 0
-  //     brightness = 0;
-  //
-  //     color = getRGB(hue, saturation, brightness);
-  //     for (i=0; i<strip.numPixels(); i++) {
-  //       strip.setPixelColor(i, color);
-  //     }
-  //     strip.show();
-  //   }
-  // }
-  //
-  // else if (! strcmp(topic, "NeoPixelBrightness")) {
-  //   // [0; 100] -> [0; 255]
-  //   brightness = atoi(myPayload) * 255 / 100;
-  //   color = getRGB(hue, saturation, brightness);
-  //   for (i = 0; i < strip.numPixels(); i++) {
-  //     strip.setPixelColor(i, color);
-  //   }
-  //   strip.show();
-  // }
-  // else if (! strcmp(topic, "NeoPixelHue")) {
-  //   // [0; 360]
-  //   hue = atoi(myPayload);
-  //   color = getRGB(hue, saturation, brightness);
-  //   for(i=0; i<strip.numPixels(); i++) {
-  //     strip.setPixelColor(i, color);
-  //   }
-  //   strip.show();
-  // }
-  //
-  // else if (! strcmp(topic, "NeoPixelSaturation")) {
-  //   // [0; 100] -> [0; 255]
-  //   saturation = atoi(myPayload) * 255 / 100;
-  //   color = getRGB(hue, saturation, brightness);
-  //   for (i = 0; i < strip.numPixels(); i++) {
-  //     strip.setPixelColor(i, color);
-  //   }
-  //   strip.show();
-  // }
 }
 
 void setup() {
@@ -183,12 +129,23 @@ void loop() {
 
     if (client.connected()) {
       if (tickOccured) {
-        float t = dht.readTemperature();
+        float t = dht.readTemperature(true, true);
+        Serial.print("Temperature read: ");
+        Serial.println(t);
+        float h = dht.readHumidity(true);
+        Serial.print("Humidity read: ");
+        Serial.println(h);
+          
         // make sure we're receiving a valid number
         if (! isnan(t)) {
-          // Serial.print("Temperature: ");
-          // Serial.println(t);
+          Serial.print("Temperature: ");
+          Serial.println(t);
           client.publish("DHTTemperature", String(t).c_str());
+        }
+        else {
+          Serial.print("Temperature: nan, 33, ");
+          Serial.println(t);
+          client.publish("DHTTemperature", "33");
         }
         tickOccured = false;
       }
